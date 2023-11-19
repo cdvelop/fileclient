@@ -1,3 +1,3 @@
 package fileclient
 
-type FileCLient struct{}
+type fileCLient struct{}
