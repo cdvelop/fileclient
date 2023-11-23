@@ -1,11 +1,7 @@
 package fileclient
 
-import (
-	"github.com/cdvelop/model"
-)
-
-func (f fileCLient) FilePath(params map[string]string) (file_path, file_area string, err error) {
+func (f fileCLient) FilePath(params map[string]string) (file_path, file_area, err string) {
 	// fmt.Println("parámetros FilePath recibidos: ", params)
 
-	return file_path, file_area, model.Error("FilePath No implementado en fileclient")
+	return file_path, file_area, "FilePath No implementado en fileclient"
 }

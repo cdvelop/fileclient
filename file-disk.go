@@ -1,15 +1,13 @@
 package fileclient
 
-import "github.com/cdvelop/model"
+func (f fileCLient) FileGet(url_object string) (out any, err string) {
 
-func (f fileCLient) FileGet(url_object string) (any, error) {
-
-	return nil, model.Error("No implementado FileGet lectura de archivos en el cliente")
+	return nil, "No implementado FileGet lectura de archivos en el cliente"
 }
 
-func (f fileCLient) FileDelete(path string) error {
+func (f fileCLient) FileDelete(path string) (err string) {
 
 	// Borrar archivos desde hdd
 
-	return model.Error("No implementado FileDelete en el cliente")
+	return "No implementado FileDelete en el cliente"
 }
