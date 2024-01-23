@@ -8,14 +8,17 @@ import (
 
 type fileCLient struct {
 	model.Logger
-	model.ObjectHandlerAdapter
+	model.ObjectsHandlerAdapter
 	model.DataBaseAdapter
 	model.DomAdapter
 	model.ThemeAdapter
 	model.FetchAdapter
 
 	stringVar string
+	object    *model.Object
 	err       string
 
 	formData js.Value
+
+	new_files_created bool
 }

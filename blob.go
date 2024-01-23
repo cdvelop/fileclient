@@ -4,85 +4,78 @@ import (
 	"syscall/js"
 )
 
-func (f fileCLient) saveBlobFile(this js.Value, p []js.Value) any {
-	const e = ". saveBlobFile"
-	if len(p) != 2 {
-		return f.Log("error arg expected: object name, object id destiny and blob file")
+func (f *fileCLient) saveBlobFile(this js.Value, p []js.Value) any {
+	const e = ". saveBlobFile error"
+	if len(p) != 3 {
+		return f.Log("error 3 arg expected: object name, blob file and extension")
 	}
 
-	object_file_name := p[0].String() //  arg 1
 	// f.Log("OBTENEMOS EL NOMBRE DEL OBJETO FILE:", object_file_name)
 
-	// ARCHIVO BLOB
-	blob := p[1] // arg 2
+	f.object, f.err = f.GetObjectBY(p[0].String(), "") //  arg 1
+	if f.err != "" {
+		return f.Log(f.err + e)
+	}
 
-	parent_object_name := f.ObjectActual().ObjectName
+	obj_destiny, err := f.object.Module.GetActualObject()
+	if err != "" {
+		return f.Log(err + e + " al obtener objeto destino")
+	}
+
 	// f.Log("parent_object_name", parent_object_name)
 
 	// OBTENEMOS EL ID DEL OBJETO ACTUAL
-	f.stringVar, f.err = f.ObjectActual().GetID()
+	f.stringVar, f.err = obj_destiny.GetID()
 	if f.err != "" {
 		return f.Log(f.err + e)
 	}
 
 	// f.Log("object_id:", f.stringVar)
+	id_file, err := f.GetNewID() //id nuevo
+	if err != "" {
+		return err + e
+	}
 
 	var data = map[string]any{
+		"id_file":   id_file,
 		"object_id": f.stringVar,
-		"blob":      blob,
+		"blob":      p[1], // ARCHIVO BLOB
+		"extension": p[2].String(),
 	}
 
-	// SELECCIONAMOS EL OBJETO FILE PARA GUARDAR EN DB
-	f.err = f.SetActualObject(object_file_name)
+	f.err = f.CreateObjectsInDB(f.object.Table, false, data)
 	if f.err != "" {
 		return f.Log(f.err + e)
 	}
-	// f.Log("OBJETO FILE PARA GUARDAR:", f.ObjectActual().ObjectName)
-
-	f.err = f.CreateObjectsInDB(f.ObjectActual().Table, true, data)
-	if f.err != "" {
-		return f.Log(f.err + e)
-	}
-	f.Log("GUARDADO DATA EN DB LOCAL OK:", data)
-
-	// ENVIAMOS LA DATA AL SERVIDOR PARA SU RESPALDO
 
 	f.buildFormData(data)
 
-	f.SendOneRequest("POST", "upload", object_file_name, f.formData, func(result []map[string]string, err string) {
+	// ENVIAMOS LA DATA AL SERVIDOR PARA SU RESPALDO
+	f.SendOneRequest("POST", "upload", f.object.ObjectName, f.formData, func(result []map[string]string, err string) {
 
 		if err != "" {
-			f.Log(err)
+			f.Log(err + e)
 			return
 		}
-
-		f.Log("RESPUESTA upload SERVIDOR:", result)
-
+		// f.Log("RESPUESTA upload SERVIDOR:", result)
 	})
 
-	if f.ObjectActual().FrontHandler.ObjectViewHandler != nil {
+	if f.object.FrontHandler.ViewHandlerObject != nil {
 
-		fiel_id := f.ObjectActual().PrimaryKeyName()
-
-		// f.Log("ObjectActual fiel_id:", fiel_id)
-
-		html := f.ObjectActual().FrontHandler.BuildItemsView(map[string]string{
-			fiel_id: data[fiel_id].(string),
-			"url":   data["url"].(string),
+		html := f.object.FrontHandler.BuildItemsView(map[string]string{
+			"id_file":   data["id_file"].(string),
+			"url":       data["url"].(string),
+			"extension": data["extension"].(string),
 		})
 
-		f.err = f.InsertAfterBegin(f.QuerySelectorObject(f.ObjectActual().ModuleName, f.ObjectActual().ObjectName), html)
+		f.err = f.InsertAfterBegin(f.QuerySelectorObject(f.object.ModuleName, f.object.ObjectName), html)
 		if f.err != "" {
 			f.Log(f.err + e)
 		}
 
 	}
 
-	// "VOLVEMOS AL OBJETO PADRE"
-	f.err = f.SetActualObject(parent_object_name)
-	if f.err != "" {
-		return f.Log(f.err + e)
-	}
+	f.new_files_created = true
 
 	return nil
 

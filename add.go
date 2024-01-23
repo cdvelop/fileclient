@@ -6,15 +6,15 @@ import (
 	"github.com/cdvelop/model"
 )
 
-func AddFileApi(h *model.MainHandler) {
+func AddFileApi(h *model.MainHandler) *fileCLient {
 
 	fc := &fileCLient{
-		Logger:               h.Logger,
-		ObjectHandlerAdapter: h.ObjectHandlerAdapter,
-		DataBaseAdapter:      h.DataBaseAdapter,
-		DomAdapter:           h.DomAdapter,
-		ThemeAdapter:         h.ThemeAdapter,
-		FetchAdapter:         h.FetchAdapter,
+		Logger:                h.Logger,
+		ObjectsHandlerAdapter: h,
+		DataBaseAdapter:       h.DataBaseAdapter,
+		DomAdapter:            h.DomAdapter,
+		ThemeAdapter:          h.ThemeAdapter,
+		FetchAdapter:          h.FetchAdapter,
 	}
 
 	h.FileApi = fc
@@ -22,5 +22,7 @@ func AddFileApi(h *model.MainHandler) {
 	h.FileDiskRW = fc
 
 	js.Global().Set("saveBlobFile", js.FuncOf(fc.saveBlobFile))
+	js.Global().Set("endFileCapture", js.FuncOf(fc.endFileCapture))
 
+	return fc
 }
